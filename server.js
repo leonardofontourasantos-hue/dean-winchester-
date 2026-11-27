@@ -12,7 +12,7 @@ const os = require('os');
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  console.error('Defina JWT_SECRET (32+ caracteres) no arquivo .env');
+  console.error('Defina JWT_SECRET (32+ caracteres) nas variáveis de ambiente.');
   process.exit(1);
 }
 
@@ -20,10 +20,18 @@ const IS_VERCEL = Boolean(process.env.VERCEL);
 const IS_PROD = process.env.NODE_ENV === 'production' || IS_VERCEL;
 const COOKIE = 'winchester_token';
 
-// Na Vercel, apenas o diretório /tmp permite escrita
+// Na Vercel, apenas /tmp permite escrita; localmente usa users.json na raiz
 const DB_FILE = IS_VERCEL
   ? path.join(os.tmpdir(), 'users.json')
   : path.join(__dirname, 'users.json');
+
+// Copia os utilizadores iniciais para /tmp na primeira execução na Vercel
+if (IS_VERCEL && !fs.existsSync(DB_FILE)) {
+  const seedFile = path.join(__dirname, 'users.json');
+  if (fs.existsSync(seedFile)) {
+    fs.copyFileSync(seedFile, DB_FILE);
+  }
+}
 
 function readUsers() {
   try { return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch { return []; }
@@ -60,7 +68,6 @@ app.set('trust proxy', 1);
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
-// Verifique se o nome da pasta no seu projeto é "public" ou "publica"
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.static(PUBLIC_DIR));
 
@@ -164,7 +171,6 @@ app.get('/api/me', (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
-// Só abre a porta localmente; na Vercel exporta o app
 if (!IS_VERCEL) {
   app.listen(PORT, () => console.log('Rodando em http://localhost:' + PORT));
 }
