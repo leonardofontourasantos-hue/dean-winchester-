@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro</title>
+  <link rel="stylesheet" href="cadastro.css">
+</head>
+<body>
+    <img src="impala.jpg" alt="Imagem vought">
+  <form id="usuario" class="container">
+    <img src="dean-removebg-preview.png" alt="Imagem logo">
+
+     <label for="email">Email:</label>
+    <input type="email" id="email" name="email" placeholder="Digite seu email" required>
+
+    <label for="senha">Senha:</label>
+    <input type="password" id="senha" name="senha" placeholder="Digite seu senha" required>
+
+    <button type="submit" id="btn-entrar">Se candidatar a vaga como tester</button>
+
+    <div id="mensagemCadastro"></div>
+
+    <script>
+      const btnCadastrar=document.querySelector('#btn-entrar')
+      const msgCadastro=document.querySelector('#mensagemCadastro')
+
+      const Cadastronome=document.querySelector('#nome')
+      const Cadastroemail=document.querySelector('#email')
+      const Cadastrosenha=document.querySelector('#senha')
+      window.location.href='login.html'
+
+
+      
+
+    </script>
+  </form>
+
+  <script src="server.js"></script>
+  
+</body>
+</html>

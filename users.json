@@ -1,0 +1,23 @@
+[
+  {
+    "id": "a9bf233d-5223-4aea-8972-f2803c070aef",
+    "name": "leo",
+    "email": "leo@gmail.com",
+    "hash": "$2a$12$8iJbSjivlGSTDPIFCePqO.zEIy69hGs2b7NBSBJYlHgahytT6DOSi",
+    "createdAt": "2026-11-19T12:39:23.126Z"
+  },
+  {
+    "id": "73efa726-bf7f-4f0d-95b4-f514a252bcde",
+    "name": "leo",
+    "email": "leonardo@gmail.com",
+    "hash": "$2a$12$lUVQZ7F14BHj7fdfirdxaeXc.v0ERuJ.E3IvtbS.GRE86uMZy5Rwy",
+    "createdAt": "2026-11-26T12:33:39.027Z"
+  },
+  {
+    "id": "c773e701-c8ad-4403-bc2b-a88994a6955c",
+    "name": "leonar",
+    "email": "leonardofont@gmail.com",
+    "hash": "$2a$12$0YEo0i2jxTRu1hJASjHnx.cR1.qESvEhfx/6jLz0yaM3Zw7o05XFC",
+    "createdAt": "2026-11-26T12:46:59.598Z"
+  }
+]

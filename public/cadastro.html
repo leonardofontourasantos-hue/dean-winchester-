@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Winchester | Entrar</title>
+<link rel="stylesheet" href="cadastro.css">
+
+</head>
+<body>
+<main>
+  <div class="brand">
+    <h1>Winchester</h1>
+    <p>Entre. A estrada espera.</p>
+    <i></i>
+  </div>
+
+  <div class="card">
+    <div class="tabs" role="tablist">
+      <button class="tab" id="t-login" role="tab" aria-selected="true">Entrar</button>
+      <button class="tab" id="t-signup" role="tab" aria-selected="false">Criar conta</button>
+    </div>
+
+    <form id="login" novalidate>
+      <div class="field">
+        <label for="l-email">E-mail</label>
+        <input id="l-email" name="email" type="email" autocomplete="email" placeholder="voce@email.com">
+        <span class="err" data-for="l-email"></span>
+      </div>
+      <div class="field">
+        <label for="l-pass">Senha</label>
+        <div class="wrap">
+          <input id="l-pass" name="password" type="password" class="has-eye" autocomplete="current-password">
+          <button type="button" class="eye" data-eye="l-pass">mostrar</button>
+        </div>
+        <span class="err" data-for="l-pass"></span>
+      </div>
+      <button class="primary" type="submit">Entrar</button>
+      <div class="status" role="status"></div>
+    </form>
+
+    <form id="signup" novalidate hidden>
+      <div class="field">
+        <label for="s-name">Nome</label>
+        <input id="s-name" name="name" type="text" autocomplete="name" placeholder="Como devo te chamar?">
+        <span class="err" data-for="s-name"></span>
+      </div>
+      <div class="field">
+        <label for="s-email">E-mail</label>
+        <input id="s-email" name="email" type="email" autocomplete="email" placeholder="voce@email.com">
+        <span class="err" data-for="s-email"></span>
+      </div>
+      <div class="field">
+        <label for="s-pass">Senha</label>
+        <div class="wrap">
+          <input id="s-pass" name="password" type="password" class="has-eye" autocomplete="new-password" placeholder="Mínimo de 8 caracteres">
+          <button type="button" class="eye" data-eye="s-pass">mostrar</button>
+        </div>
+        <span class="err" data-for="s-pass"></span>
+      </div>
+      <div class="field">
+        <label for="s-pass2">Confirmar senha</label>
+        <input id="s-pass2" type="password" autocomplete="new-password">
+        <span class="err" data-for="s-pass2"></span>
+      </div>
+      <button class="primary" type="submit">Criar conta</button>
+      <div class="status" role="status"></div>
+    </form>
+
+    <div class="foot" id="foot"></div>
+  </div>
+</main>
+
+<script>
+
+const API_URL = 'https://api.groq.com/openai/v1/chat/completion';
+const ENDPOINTS = { login: '/login', signup: '/signup' };
+
+
+  
+
+const $ = (s, r = document) => r.querySelector(s);
+const forms = { login: $('#login'), signup: $('#signup') };
+const tabs = { login: $('#t-login'), signup: $('#t-signup') };
+
+function show(mode){
+  for (const k in forms){ forms[k].hidden = k !== mode; tabs[k].setAttribute('aria-selected', String(k === mode)); }
+  $('#foot').innerHTML = mode === 'login'
+    ? 'Ainda não tem conta? <button type="button" data-go="signup">Criar agora</button>'
+    : 'Já tem conta? <button type="button" data-go="login">Entrar</button>';
+}
+tabs.login.onclick = () => show('login');
+tabs.signup.onclick = () => show('signup');
+$('#foot').addEventListener('click', e => { const g = e.target.dataset.go; if (g) show(g); });
+show('login');
+
+document.querySelectorAll('[data-eye]').forEach(b => b.addEventListener('click', () => {
+  const i = document.getElementById(b.dataset.eye), on = i.type === 'password';
+  i.type = on ? 'text' : 'password'; b.textContent = on ? 'ocultar' : 'mostrar';
+}));
+
+function setErr(id, msg){
+  const i = document.getElementById(id), e = document.querySelector('[data-for="' + id + '"]');
+  e.textContent = msg || ''; if (msg) i.setAttribute('aria-invalid', 'true'); else i.removeAttribute('aria-invalid');
+  return !msg;
+}
+const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+async function send(path, body){
+  if (!API_URL){ await new Promise(r => setTimeout(r, 600)); return { demo: true }; }
+  const r = await fetch(API_URL + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.message || 'Erro ' + r.status);
+  return j;
+}
+
+async function submit(mode, fields, check){
+  const form = forms[mode], status = $('.status', form), btn = $('.primary', form);
+  status.className = 'status'; status.textContent = '';
+  if (!check()) return;
+  btn.disabled = true; const label = btn.textContent; btn.textContent = 'Aguarde…';
+  try {
+    const data = await send(ENDPOINTS[mode], fields());
+    status.className = 'status good';
+    status.textContent = data.demo ? 'Modo demonstração: tudo certo, nada foi enviado.' : (mode === 'login' ? 'Bem-vindo de volta.' : 'Conta criada.');
+    onSuccess(mode, data);
+  } catch (e){
+    status.className = 'status bad'; status.textContent = e.message || 'Não foi possível concluir.';
+  }
+  btn.disabled = false; btn.textContent = label;
+}
+
+forms.login.addEventListener('submit', e => {
+  e.preventDefault();
+  submit('login',
+    () => ({ email: $('#l-email').value.trim(), password: $('#l-pass').value }),
+    () => { const a = setErr('l-email', emailOk($('#l-email').value.trim()) ? '' : 'Informe um e-mail válido.');
+            const b = setErr('l-pass', $('#l-pass').value ? '' : 'Informe sua senha.'); return a && b; });
+});
+
+forms.signup.addEventListener('submit', e => {
+  e.preventDefault();
+  submit('signup',
+    () => ({ name: $('#s-name').value.trim(), email: $('#s-email').value.trim(), password: $('#s-pass').value }),
+    () => { const p = $('#s-pass').value;
+      const a = setErr('s-name', $('#s-name').value.trim() ? '' : 'Diga seu nome.');
+      const b = setErr('s-email', emailOk($('#s-email').value.trim()) ? '' : 'Informe um e-mail válido.');
+      const c = setErr('s-pass', p.length >= 8 ? '' : 'A senha precisa de pelo menos 8 caracteres.');
+      const d = setErr('s-pass2', $('#s-pass2').value === p ? '' : 'As senhas não conferem.');
+      return a && b && c && d; });
+});
+</script>
+<script src="server.js"></script>
+  
+</body>
+</html>
+
+     
+    
+   
