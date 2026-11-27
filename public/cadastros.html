@@ -74,11 +74,10 @@
 const API_URL = '/api';
 const ENDPOINTS = { login: '/login', signup: '/signup' };
 
-function onSuccess(mode, data){     setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-
-  window.location.href = '/app';
+function onSuccess(mode, data) {
+  setTimeout(() => {
+    window.location.href = '/index.html';
+  }, 800);
 }
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -149,7 +148,6 @@ forms.signup.addEventListener('submit', e => {
       const c = setErr('s-pass', p.length >= 8 ? '' : 'A senha precisa de pelo menos 8 caracteres.');
       const d = setErr('s-pass2', $('#s-pass2').value === p ? '' : 'As senhas não conferem.');
       return a && b && c && d; });
-      if (!data.demo) window.location.href = 'index.html';
 });
 </script>
 </body>
