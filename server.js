@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -14,9 +15,15 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
   console.error('Defina JWT_SECRET (32+ caracteres) no arquivo .env');
   process.exit(1);
 }
-const IS_PROD = process.env.NODE_ENV === 'production';
+
+const IS_VERCEL = Boolean(process.env.VERCEL);
+const IS_PROD = process.env.NODE_ENV === 'production' || IS_VERCEL;
 const COOKIE = 'winchester_token';
-const DB_FILE = path.join(__dirname, 'users.json');
+
+// Na Vercel, apenas o diretório /tmp permite escrita
+const DB_FILE = IS_VERCEL
+  ? path.join(os.tmpdir(), 'users.json')
+  : path.join(__dirname, 'users.json');
 
 function readUsers() {
   try { return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch { return []; }
@@ -53,8 +60,9 @@ app.set('trust proxy', 1);
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
-// Configura o Express para servir os arquivos estáticos de dentro da pasta "public"
-app.use(express.static(path.join(__dirname, 'public')));
+// Verifique se o nome da pasta no seu projeto é "public" ou "publica"
+const PUBLIC_DIR = path.join(__dirname, 'public');
+app.use(express.static(PUBLIC_DIR));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -64,9 +72,8 @@ const limiter = rateLimit({
   message: { message: 'Muitas tentativas. Tente de novo em alguns minutos.' },
 });
 
-// Rota raiz abrindo o cadastros.html de dentro da pasta public
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'cadastros.html'));
+  res.sendFile(path.join(PUBLIC_DIR, 'cadastros.html'));
 });
 
 // ==========================================
@@ -157,4 +164,9 @@ app.get('/api/me', (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
-app.listen(PORT, () => console.log('Rodando em http://localhost:' + PORT));
+// Só abre a porta localmente; na Vercel exporta o app
+if (!IS_VERCEL) {
+  app.listen(PORT, () => console.log('Rodando em http://localhost:' + PORT));
+}
+
+module.exports = app;
